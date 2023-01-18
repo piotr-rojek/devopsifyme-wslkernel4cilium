@@ -60,9 +60,9 @@ jobs:
 
     - name: Archive build output
       run: |
-        docker run --name output $imageTag:${{ steps.gitversion.outputs.semVer }}
-        docker cp output:/install/ output/
-        docker container rm output
+        docker run --name kernel4cilium $imageTag:${{ steps.gitversion.outputs.semVer }}
+        docker cp kernel4cilium:/install/ output/
+        docker container rm kernel4cilium
         tar -czvf wslkernel4cilium-${{ steps.gitversion.outputs.semVer }}.tar.gz output
 
     - name: Upload build output
