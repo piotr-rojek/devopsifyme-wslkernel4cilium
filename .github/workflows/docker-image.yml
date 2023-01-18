@@ -1,0 +1,94 @@
+name: Docker Image CI
+
+env:
+  imageTag: devopsifyme/wslkernel4cilium
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}   # checkout the correct branch name
+        fetch-depth: 0                # fetch the whole repo history
+    
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.7
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.7
+    
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: devopsifyme
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag $imageTag:${{ steps.gitversion.outputs.semVer }}
+
+    - name: Push Docker image
+      if: github.event_name != 'pull_request'
+      run: docker push $imageTag:${{ steps.gitversion.outputs.semVer }}
+
+    - name: Tag Docker Image as latest
+      if: github.ref == 'refs/heads/main'
+      run: |
+        docker tag $imageTag:${{ steps.gitversion.outputs.semVer }} $imageTag:latest 
+        docker tag $imageTag:${{ steps.gitversion.outputs.semVer }} $imageTag:${{ steps.gitversion.outputs.major }} 
+        docker tag $imageTag:${{ steps.gitversion.outputs.semVer }} $imageTag:${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }} 
+        docker tag $imageTag:${{ steps.gitversion.outputs.semVer }} $imageTag:${{ steps.gitversion.outputs.majorMinorPatch }}
+        docker push $imageTag:latest
+        docker push $imageTag:${{ steps.gitversion.outputs.major }} 
+        docker push $imageTag:${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }} 
+        docker push $imageTag:${{ steps.gitversion.outputs.majorMinorPatch  }}
+
+    - name: Archive build output
+      run: |
+        docker run --name output $imageTag:${{ steps.gitversion.outputs.semVer }}
+        docker cp output:/install/ output/
+        docker container rm output
+        tar -czvf wslkernel4cilium-${{ steps.gitversion.outputs.semVer }}.tar.gz output
+
+    - name: Upload build output
+      uses: actions/upload-artifact@v3
+      with:
+        name: app
+        path: wslkernel4cilium-${{ steps.gitversion.outputs.semVer }}.tar.gz
+
+    - name: Create Release
+      if: github.ref == 'refs/heads/main'
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_name: v${{ steps.gitversion.outputs.SemVer }}
+        tag_name: v${{ steps.gitversion.outputs.SemVer }}
+
+    - name: Upload Release Asset
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: wslkernel4cilium-${{ steps.gitversion.outputs.semVer }}.tar.gz
+        asset_name: wslkernel4cilium-${{ steps.gitversion.outputs.semVer }}.tar.gz
+        asset_content_type: application/tar+gzip
+
