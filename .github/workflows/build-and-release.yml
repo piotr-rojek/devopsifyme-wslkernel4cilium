@@ -42,9 +42,9 @@ jobs:
         docker cp build.sh "$containerName:/"
         docker exec $containerName mkdir /output
         docker exec $containerName touch /output/test
-        docker cp "$containerName:/output" .
+        docker cp "$containerName:/output/" .
         docker rm $containerName --force
-        tar -czvf $containerName-${{ steps.gitversion.outputs.semVer }}.tar.gz output
+        tar -czvf $kernelBranch-${{ steps.gitversion.outputs.semVer }}.tar.gz output
 
     - name: Upload build output
       uses: actions/upload-artifact@v3

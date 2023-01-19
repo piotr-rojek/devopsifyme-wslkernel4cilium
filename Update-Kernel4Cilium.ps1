@@ -16,7 +16,7 @@ try
     docker run --name $ContainerName -d -it -e KERNEL_ORIGIN=$KernelOrigin -e KERNEL_BRANCH=$KernelBranch $ImageTag bash
     docker cp build.sh "$($ContainerName):/"
     docker exec $ContainerName sh /build.sh
-    docker cp "$($ContainerName):/output" .
+    docker cp "$($ContainerName):/output/" .
 }
 finally
 {
