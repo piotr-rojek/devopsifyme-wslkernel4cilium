@@ -40,7 +40,7 @@ jobs:
       run: |
         docker run --name $containerName -d -it -e KERNEL_ORIGIN=$kernelOrigin -e KERNEL_BRANCH=$kernelBranch $imageTag bash
         docker cp build.sh "$containerName:/"
-        docker exec $containerName 'mkdir /output && touch /output/test'
+        docker exec $containerName bash -c 'mkdir /output && touch /output/test'
         docker cp "$containerName:/output" .
         docker rm $ContainerName --force
         tar -czvf $containerName-${{ steps.gitversion.outputs.semVer }}.tar.gz output
