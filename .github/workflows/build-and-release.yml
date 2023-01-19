@@ -50,7 +50,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: kernel
-        path: ${{env.kernelBranch}}-${{ steps.gitversion.outputs.semVer }}.tar.gz
+        path: output
 
     - name: Create Release
       #if: github.ref == 'refs/heads/main'
