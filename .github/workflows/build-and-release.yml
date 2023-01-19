@@ -43,7 +43,7 @@ jobs:
         docker exec $containerName mkdir /output
         docker exec $containerName touch /output/test
         docker cp "$containerName:/output" .
-        docker rm $ContainerName --force
+        docker rm $containerName --force
         tar -czvf $containerName-${{ steps.gitversion.outputs.semVer }}.tar.gz output
 
     - name: Upload build output
