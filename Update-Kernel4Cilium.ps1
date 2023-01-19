@@ -20,8 +20,12 @@ try
 }
 finally
 {
-    #docker rm $ContainerName --force
+    docker rm $ContainerName --force
 }
+
+# stop WSL
+wsl --shutdown
+Start-Sleep 10s
 
 # copy kernel to user profile
 Copy-Item output/bzImage $WslKernelPath -Force
@@ -34,5 +38,5 @@ $wslConfig.wsl2 ??= @{}
 $wslConfig.wsl2.kernel = $WslKernelPath -replace '\\','\\'
 $wslConfig | Out-IniFile -FilePath $WslConfigPath -Force
 
-# restart
+# restart WsL
 wsl --shutdown
