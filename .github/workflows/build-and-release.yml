@@ -40,8 +40,7 @@ jobs:
       run: |
         docker run --name $containerName -d -it -e KERNEL_ORIGIN=$kernelOrigin -e KERNEL_BRANCH=$kernelBranch $imageTag bash
         docker cp build.sh "$containerName:/"
-        docker exec $containerName mkdir /output
-        docker exec $containerName touch /output/test
+        docker exec $containerName sh /build.sh
         docker cp "$containerName:/output/" .
         docker rm $containerName --force
         tar -czvf $kernelBranch-${{ steps.gitversion.outputs.semVer }}.tar.gz output
@@ -53,7 +52,7 @@ jobs:
         path: output
 
     - name: Create Release
-      #if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main'
       id: create_release
       uses: actions/create-release@v1
       env:
@@ -63,7 +62,7 @@ jobs:
         tag_name: v${{ steps.gitversion.outputs.SemVer }}
 
     - name: Upload Release Asset
-      #if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
