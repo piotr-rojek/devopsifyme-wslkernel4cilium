@@ -1,9 +1,9 @@
 # https://docs.cilium.io/en/v1.12/operations/system_requirements/#linux-kernel
+apt-get update && apt-get -y install git python3 bc build-essential flex bison dwarves libssl-dev libelf-dev
 
 git clone --progress --branch $KERNEL_BRANCH --single-branch --no-recurse-submodules --no-tags --depth 1 $KERNEL_ORIGIN /src
 
 cd /src
-pwd
 
 # Base Requirements
 echo '
@@ -61,6 +61,7 @@ echo '
 CONFIG_NET_SCH_FQ=m
 ' >> Microsoft/config-wsl
 
+echo 'Starting to build... may take 10-20 minutes to complete'
 make -j8 KCONFIG_CONFIG=Microsoft/config-wsl > log.txt
 
 mkdir /output
